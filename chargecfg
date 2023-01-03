@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set ${DEBUG:+-x} -efu 
+
+log () {
+    echo >&2 "$(date +'%Y-%m-%d %H:%M:%S') $*"
+}
+
+die () {
+    log "$*"
+    exit 1;
+}
+
+usage () {
+    echo >&2 "
+chargecfg: configure battery charging
+
+Usage: chargecfg <COMMAND>
+"
+    exit "$1"
+}
+    
+cmd="${1:-}"
+shift ||:
+
+case "$cmd" in
+    --help|-h|usage)
+        usage 0
+        ;;
+    *)
+        usage 1
+        ;;
+esac
