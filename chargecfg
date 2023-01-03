@@ -3,10 +3,11 @@
 set ${DEBUG:+-x} -eu
 
 SYS_PATH=/sys/class/power_supply
+VAR_PATH=/var/lib/chargecfg
 THRESHOLD_FILE=charge_control_end_threshold
 
 log () {
-    echo >&2 "$(date +'%Y-%m-%d %H:%M:%S') $*"
+    echo >&2 "chargecfg: $*"
 }
 
 die () {
@@ -43,7 +44,45 @@ cmd_show () {
         echo "$thr_file: $(cat "$thr_file")"
     done
 
-    [ -n "$found" ] || die "No supported batteries found"
+    [ -n "$found" ] || log "No supported batteries found"
+}
+
+cmd_store () {
+    local found='' thr_file
+
+    mkdir -p "$VAR_PATH"
+
+    cd "$SYS_PATH"
+    for dirname in *; do
+        thr_file="$dirname/$THRESHOLD_FILE"
+        [ -f "$thr_file" ] || continue
+        found=1
+
+        mkdir -p "$VAR_PATH/$dirname"
+        cat "$thr_file" > "$VAR_PATH/$thr_file"
+    done
+
+    [ -n "$found" ] || log "No supported batteries found"
+    exit 0
+}
+
+cmd_restore () {
+    local found='' thr_file
+
+    cd "$SYS_PATH"
+    for dirname in *; do
+        thr_file="$dirname/$THRESHOLD_FILE"
+        [ -f "$thr_file" ] || continue
+
+        found=1
+        if [ -r "$VAR_PATH/$thr_file" ]; then
+            cat "$VAR_PATH/$thr_file" > "$thr_file"
+        else
+            log "Saved state for $thr_file not found, leaving the default"
+        fi
+    done
+
+    [ -n "$found" ] || log "No supported batteries found"
     exit 0
 }
 
