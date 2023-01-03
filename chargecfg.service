@@ -1,0 +1,13 @@
+[Unit]
+Description=Configure battery charging
+After=multi-user.target
+StartLimitBurst=0
+
+[Service]
+Type=oneshot
+Restart=on-failure
+ExecStart=/usr/sbin/chargecfg restore
+ExecStop=-/usr/sbin/chargecfg store
+
+[Install]
+WantedBy=multi-user.target
